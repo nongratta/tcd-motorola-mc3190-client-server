@@ -1,0 +1,66 @@
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows.Forms;
+
+namespace MotorolaClientTCD
+{
+    public partial class ClientTCD : Form
+    {
+        // Переменные в классе (или в функции, если все в одной ф-ции делать)
+        private readonly IPAddress ip = IPAddress.Parse("192.168.100.54"); // это IP сервера
+        private const int port = 7567; // Порт сервера
+        private Socket socket;
+        private IPEndPoint iep;
+
+        public ClientTCD()
+        {
+            InitializeComponent();
+        }
+
+        //созданный ранее компонент подробнее о создании компонента можно посмотреть здесь http://habrahabr.ru/post/235869/
+        private void barcodeReader1_OnRead(string codeResult)
+        {
+            codeLine.Text = codeResult;
+
+            if (!string.IsNullOrEmpty(codeLine.Text))
+            {
+                // по какому то событию отправляем данные
+                byte[] data = Encoding.UTF8.GetBytes(codeLine.Text);
+
+                socket.SendTo(data, iep);
+            }
+        }
+
+        private void ClientTCD_Load(object sender, EventArgs e)
+        {
+            // Инициализируем сокет где угодно, например при загрузке формы
+            try
+            {
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+                //  socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, 1);
+
+                iep = new IPEndPoint(ip, port);
+            }
+            catch (SocketException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        // Закрываем сокет, когда не нужен
+        private void ClientTCD_Closing(object sender, CancelEventArgs e)
+        {
+            if (socket.Connected)
+
+                socket.Close();
+        }
+    }
+}
+
+//Все можно и в одной функции сделать
