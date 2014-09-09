@@ -1,0 +1,76 @@
+using System.Data;
+using System.Drawing;
+using System.Drawing.Text;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows.Forms;
+
+namespace MotorolaServerTCD
+{
+    public partial class ServerTCD : Form
+    {
+        // Определяем переменные в классе глобально и инициализируем сокет. Сокет можно в функции инициализировать
+        private const int portReceive = 7567;
+        private readonly Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        private readonly byte[] buffer = new byte[102400];
+        private static readonly IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, portReceive);
+        private EndPoint endPoint = (EndPoint) ipEndPoint;
+
+        public ServerTCD()
+        {
+            InitializeComponent();
+        }
+
+        //Функция для  вкл сокета (прослушка порта и ожидание данных), можно на загрузку формы повесить или как угодно.
+        private void ServerTCD_Load(object sender, EventArgs e)
+        {
+            //Запускаем прослушку порта
+            socket.Bind(endPoint);
+            //Ожидаем получения данных в буфер
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint, new AsyncCallback(ReceiveCallback), socket);
+        }
+
+
+        //Функция, которая будет вызываться, при получении данных в порт
+        private void ReceiveCallback(IAsyncResult asyncResult)
+        {
+            //получаем данные от сокета  N – кол-во полученных байт
+            int n = socket.EndReceiveFrom(asyncResult, ref endPoint);
+
+            //преобразовываем байты в строку. Кодировка должна совпадать при отправке и получении
+            string getString = Encoding.UTF8.GetString(buffer, 0, n);
+
+            //вызываем функцию, которая записывает данные в поле
+            AddDataText(getString);
+
+            //Ожидаем получения следующих данных в буфер
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint, new AsyncCallback(ReceiveCallback), socket);
+        }
+
+        //Записываем текст в поле
+        private delegate void AddDataTextDelegate(string text);
+
+        private void AddDataText(string text)
+        {
+            if (textBox1.InvokeRequired)
+            {
+                textBox1.Invoke(new AddDataTextDelegate(AddDataText), text);
+            }
+            else
+            {
+                textBox1.Text = text;
+            }
+        }
+
+       // По завершении положено закрывать соединение и закрывать сокет. Но у UDP протокола нет конекта, так что дисконнект делать не обязательно.
+        private void ServerTCD_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if(socket.Connected)
+                socket.Disconnect(false);
+
+            socket.Close();
+        }
+    }
+}
