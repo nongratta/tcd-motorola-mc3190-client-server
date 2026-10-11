@@ -1,0 +1,17 @@
+
+
+# Приватные настройки, секреты и локальные данные.
+GitExtensions.settings
+.idea/
+.dotnet/
+[Bb]in/
+[Oo]bj/
+appsettings.Local.json
+appsettings.*.Local.json
+*.local.config
+*.user
+*.suo
+*.pubxml.user
+*.pfx
+*.p12
+*.key
