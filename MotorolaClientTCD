@@ -12,7 +12,7 @@ namespace MotorolaClientTCD
     public partial class ClientTCD : Form
     {
         // Переменные в классе (или в функции, если все в одной ф-ции делать)
-        private readonly IPAddress ip = IPAddress.Parse("192.168.100.54"); // это IP сервера
+        private readonly IPAddress ip = IPAddress.Parse("127.0.0.1"); // это IP сервера
         private const int port = 7567; // Порт сервера
         private Socket socket;
         private IPEndPoint iep;
